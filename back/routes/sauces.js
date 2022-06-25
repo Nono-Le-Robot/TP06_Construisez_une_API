@@ -7,5 +7,6 @@ router.get('/', ctrlSauces.GetAllSauce);
 router.get('/:id',ctrlSauces.GetOneSauce);
 router.put('/:id',ctrlSauces.ModifySauce);
 router.delete('/:id',ctrlSauces.DeleteSauce);
+router.delete('/', ctrlSauces.DeleteAllSauce)
 
 module.exports = router;

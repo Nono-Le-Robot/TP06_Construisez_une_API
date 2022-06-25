@@ -31,3 +31,10 @@ exports.DeleteSauce = (req,res,next) => {
     .then(() => res.status(200).json({message :'sauce supprimée'}))
     .catch(error => res.status(404).json({ error }));
 }
+
+
+exports.DeleteAllSauce = (req,res,next) => {
+    Sauce.deleteMany()
+    .then(() => res.status(200).json({message :'sauces supprimées'}))
+    .catch(error => res.status(404).json({ error }));
+}
