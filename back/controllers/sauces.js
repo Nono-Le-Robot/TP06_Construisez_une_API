@@ -1,5 +1,7 @@
 const Sauce = require ('../models/sauce')
 const fs = require("fs");
+const User = require('../models/user');
+const jwt = require('jsonwebtoken');
 
 exports.CreateSauce = (req,res,next) => {
     const sauceObject = JSON.parse(req.body.sauce);
@@ -40,24 +42,32 @@ exports.ModifySauce =  (req,res,next) =>{
     .catch(error => res.status(404).json({error})) 
 }
 
+
+
 exports.DeleteSauce = (req,res,next) => {
-    Sauce.findOne({ _id: req.params.id })
-    .then(sauce => {
-    const filename = sauce.imageUrl.split('/images/')[1];
-    fs.unlink(`images/${filename}`, () => {
-        Sauce.deleteOne({ _id: req.params.id })
-        .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
-        .catch(error => res.status(400).json({ error }));
-        });
+    User.find()
+    .then( users => {
+        findUser = users
+        sauceId = req.params.id
+        Sauce.findOne({ _id: req.params.id })
+        .then(sauce => {
+                const token = req.headers.authorization.split(' ')[1];
+                const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+                const tokenUserId = decodedToken.userId;
+                if(sauce.userId === tokenUserId){
+                    const filename = sauce.imageUrl.split('/images/')[1];
+                    fs.unlink(`images/${filename}`, () => {
+                        Sauce.deleteOne({ _id: req.params.id })
+                        .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+                        .catch(error => res.status(400).json({ error }));
+                        });
+                }
+        })
+        .catch(error => res.status(500).json({ error }));
     })
-    .catch(error => res.status(500).json({ error }));
+    .catch(error => res.status(500).json({ error }))
 }
 
-exports.DeleteAllSauce = (req,res,next) => {
-    Sauce.deleteMany()
-    .then(() => res.status(200).json({message :'sauces supprimées'}))
-    .catch(error => res.status(404).json({ error }));
-}
 
 exports.CreateLike = (req,res,next) => {
     Sauce.findOne({
