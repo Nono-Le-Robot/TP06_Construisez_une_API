@@ -32,23 +32,27 @@ exports.GetOneSauce = (req,res,next) => {
 }
 
 exports.ModifySauce =  (req,res,next) =>{
-    const sauceObject = req.file ? 
-    { 
-        ...JSON.parse(req.body.sauce),
-        imageUrl : `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
-     } : { ...req.body }
-    Sauce.updateOne({_id : req.params.id},{...sauceObject, _id : req.params.id})
-    .then(res.status(200).json({message : 'sauce modifié'}))
-    .catch(error => res.status(404).json({error})) 
+                    const sauceObject = req.file ? 
+                    { 
+                        ...JSON.parse(req.body.sauce),
+                        imageUrl : `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
+                    } : { ...req.body }
+                    Sauce.findOne({ _id: req.params.id })
+                    .then(sauce => {
+                        const token = req.headers.authorization.split(' ')[1];
+                        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+                        const tokenUserId = decodedToken.userId;
+                        if(sauce.userId === tokenUserId){
+                            Sauce.updateOne({_id : req.params.id},{...sauceObject, _id : req.params.id})
+                            .then( sauce => {
+                                res.status(200).json({ message: 'Objet modifié !'})
+                            })
+                            .catch(error => res.status(404).json({error})) 
+                        }
+                })
 }
 
-
-
 exports.DeleteSauce = (req,res,next) => {
-    User.find()
-    .then( users => {
-        findUser = users
-        sauceId = req.params.id
         Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
                 const token = req.headers.authorization.split(' ')[1];
@@ -64,8 +68,6 @@ exports.DeleteSauce = (req,res,next) => {
                 }
         })
         .catch(error => res.status(500).json({ error }));
-    })
-    .catch(error => res.status(500).json({ error }))
 }
 
 
